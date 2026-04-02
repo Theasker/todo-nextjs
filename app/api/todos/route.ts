@@ -1,25 +1,29 @@
-import { prisma } from '@/lib/prisma'
+import { PrismaClient } from '@prisma/client'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { NextResponse } from 'next/server'
 
-// GET /api/todos — devuelve todas las tareas
 export async function GET() {
+  const adapter = new PrismaLibSql({
+    url: process.env.DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  })
+  const prisma = new PrismaClient({ adapter })
   const todos = await prisma.todo.findMany({
     orderBy: { createdAt: 'desc' }
   })
   return NextResponse.json(todos)
 }
 
-// POST /api/todos — crea una tarea nueva
 export async function POST(request: Request) {
+  const adapter = new PrismaLibSql({
+    url: process.env.DATABASE_URL!,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  })
+  const prisma = new PrismaClient({ adapter })
   const { title } = await request.json()
-
   if (!title || title.trim() === '') {
-    return NextResponse.json(
-      { error: 'El título es obligatorio' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'El título es obligatorio' }, { status: 400 })
   }
-
   const todo = await prisma.todo.create({
     data: { title: title.trim() }
   })
